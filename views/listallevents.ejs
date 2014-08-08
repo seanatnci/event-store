@@ -1,0 +1,72 @@
+<script src="http://www.google.com/jsapi?key=ABQIAAAAcKTzoKqP7-gJQjEsftT2aBRSn-88Pg1a-upKyGgVsNHBe_eH1xTgCvOP9Q51OFsSZYjiLjyVwSr3pw"
+        type="text/javascript"></script>
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script type="text/javascript" src="/javascripts/jquery.ui.map.full.min.js"></script>
+<script src="/javascripts/database.js"></script>
+<script src="/javascripts/geolocate.js"></script>
+
+<div data-role="page" id="first" class='textdisp'>
+    <div data-role="header" data-theme="a">
+        <h1>My Events<img src="/images/gmail.jpg" style="display: none;"/></h1>
+        <a href="#second" data-icon="info" class="ui-btn-right">info</a>
+    </div>
+    <div data-role="content">
+        <div id= 'eventslist' data-role='collapsible-set' data-theme="b"></div>
+        <script>
+                $(document).ready(function() {
+                //$("#first").on("pageshow", function (e) {
+                    listings = document.getElementById('eventslist');
+                    setupDatabase();
+                    returnDatabase();
+                });
+                $("#save_event").on("click", function (e) {
+                    e.preventDefault();
+                    $.mobile.changePage('/events', { type: 'get'})
+                });
+
+        </script>
+
+    </div>
+    <!--<a href="#" id='login_cal' data-role="button" data-theme="a">Login to Google Calendar</a>
+    <a href="#" id='save_event' data-role="button" data-theme="a">Sync to Facebook</a> -->
+
+</div>
+<div data-role="page" id="second">
+    <div data-role="header" data-position="inline" >
+        <h1>Info</h1>
+        <a href="#first" data-icon="home" class="ui-btn-left">Events</a>
+    </div>
+
+    <div data-role="content">
+        <p class="paradisp">To Save this application to your Phone's Home Screen as an Icon</p>
+        <p class="paradisp">Android users can add an icon to a screen that will directly link to a web site.
+            The process is - Save a bookmark while viewing the event listing web page (click the "Events" Button).<br/> Then go to a phone screen that has an empty spot for an
+            icon, long-press in that empty spot to
+            open the "Add to Home Screen" option, choose "Shortcuts",
+            then "Bookmarks" and then pick the bookmark you just saved in your browser.</p>
+        <p class="paradisp">
+            iPhone/iPad/iTouch users. While viewing the event listing web page (click the "Home" Button), tap the highlighted
+            icon at the bottom of the screen.</p>
+        <img style="margin:0px auto;display:block" src="/images/iphoneicons.png"/>
+        <p class="paradisp">
+            It will open up an action sheet. Tap on "Add to Home Screen" button.
+            Type a name in the text box and then tap the "Add button" on the top right. This will add the app to the home screen.
+        </p>
+    </div><!-- /content -->
+</div>
+
+<div data-role="page" id="third" >
+    <div data-role="header" data-position="inline" >
+        <h1>Location</h1>
+        <a href="#first" data-icon="home" class="ui-btn-left">Events</a>
+    </div>
+
+    <div data-role="content" >
+        <div id="mapcanvas" style="padding: 0;height: 350px;width:100%">
+
+        </div>
+        <a href="#" id='locateEvent' data-role="button" data-inline="true" data-theme="b">Plot Route To Event</a>
+        <div id="directions_panel" style="width:100%"></div>
+    </div>
+</div>
+

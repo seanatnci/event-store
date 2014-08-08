@@ -1,0 +1,204 @@
+<div data-role="page" id="first" class='textdisp'>
+    <div data-role="header" data-theme="a">
+        <a href="#second" data-role="button" data-icon="about" class="ui-btn-left" >About Us</a>
+        <a href="#third" data-role="button" data-icon="info" class="ui-btn-right">help</a>
+
+        <h1 >New Event</h1>
+
+    </div>
+    <h1 class='blueback' id="event_title"></h1>
+    <div class='creamback'>
+        <p id="event_location"></p>
+        <p id="event_date"></p>
+        <p id="event_description"></p>
+        <span style="visibility: hidden" id="event_id"><%= id %></span>
+    </div>
+    <a href="#" rel='external' id='save_event' data-role="button" data-theme="b">Save Event</a>
+
+</div>
+<div data-role="page" id="second">
+    <div data-role="header" data-position="inline" >
+        <h1>Contact</h1>
+        <a href="#first" data-icon="home" class="ui-btn-left">Home</a>
+    </div>
+
+    <div data-role="content">
+        <p class="paradisp">This application has been created by New Media Matters. We can be contacted at sean@nmm.ie</p>
+    </div><!-- /content -->
+</div>
+<div data-role="page" id="third">
+    <div data-role="header">
+        <h1>Info</h1>
+        <a href="#first" data-icon="home" class="ui-btn-left">Home</a>
+    </div><!-- /header -->
+    <div data-role="content">
+        <p class="paradisp">This application will store events to a Smartphone locally and will also store the event
+            to a users Facebook account. </p>
+        <p class="paradisp">The event will be saved as a Facebook event. The storage to Facebook
+            is permission based and requires the user to consent to the application having permission to
+            update a users Facebook events page.
+        </p>
+        <p class="paradisp">If you do save your event to Facebook consider sharing the event with your friends on Facebook</p>
+    </div><!-- /content -->
+</div>
+<div data-role="page" id="fb">
+    <div data-role="header">
+        <h1>FaceBook Save</h1>
+        <a href="#first" data-icon="home" class="ui-btn-left">Home</a>
+        <a href="/events" rel='external' id='events' data-role="button" data-theme="b" class="ui-btn-right">Events</a>
+    </div><!-- /header -->
+    <div data-role="content">
+        <a href="#" rel='external' id='save_fb_event' data-role="button" data-inline="true"
+           data-icon="fb" data-theme="b">
+            Save FB Event</a>
+        <a href="/events" rel='external' id='fb-event'>cancel</a>
+    </div><!-- /content -->
+</div>
+</body>
+<script>
+    $(document).ready(function() {
+        var event
+        var id = $("#event_id").text();
+        var uri = "http://event-publisher.heroku.com/events/"+id+".json"
+        var jqxhr = $.ajax( uri, {dataType: 'json'} )
+                .done(function(data) {
+                    event = data.event
+                    console.log( "success" );
+                    $("#event_title").text(event.title);
+                    $("#event_date").text("On: " + event.date.slice(0,10));
+                    $("#event_description").text(event.description);
+                    $("#event_location").text("@" + event.location.location_name);
+                })
+                .fail(function() {
+                    alert( "error" );
+                })
+
+
+        $("#save_event").on("click", function (e) {
+            e.preventDefault();
+            //$.mobile.loading("show","Saving");
+            $.mobile.showPageLoadingMsg();
+            setupDatabase();
+            updateDatabase( event.date,
+                    event.title,
+                    event.description,
+                    event.location.location_name,
+                    event.end_date,
+                    id.toString(),
+                    event.location.geo_lat.toString(),
+                    event.location.geo_long.toString(),
+                    event.event_url
+            )
+            start_date=event.date.replace("'","")
+            //console.log(start_date + " " + "{{event_title}}" + " " + "{{ description }}" + " " + "{{ elocation }}")
+            //var params = "start_date="+start_date+"&" + "id=" + "{{ id }}" + "&" + "title=" + "{{event_title}}" + "&" + "description=" + "{{ description }}" + "&" + "location=" + "{{ elocation }}";
+
+            //$.mobile.loading('hide');
+            $.mobile.hidePageLoadingMsg();
+            try {
+                $.mobile.ajaxEnabled = false;
+                $.mobile.changePage('#fb');
+                //$.mobile.changePage('/events');
+                //window.location.replace("/fblogin?id=" + "{{ id }}")
+            }
+            catch(err) {
+                txt="There was an error on this page.\n\n";
+                txt+="Error description: " + err.message + "\n\n";
+                txt+="Click OK to continue.\n\n";
+                alert(txt);
+            }
+            /*$.mobile.changePage('/fblogin',{type: 'get', data:params} )*/
+
+        });
+
+
+    window.fbAsyncInit = function() {
+        FB.init({
+            appId      : '619258551472205',
+            cookie     : true,  // enable cookies to allow the server to access
+            // the session
+            xfbml      : true,
+            version    : 'v1.0'
+        });
+        // Now that we've initialized the JavaScript SDK, we call
+        // FB.getLoginStatus().  This function gets the state of the
+        // person visiting this page and can return one of three states to
+        // the callback you provide.  They can be:
+        //
+        // 1. Logged into your app ('connected')
+        // 2. Logged into Facebook, but not your app ('not_authorized')
+        // 3. Not logged into Facebook and can't tell if they are logged into
+        //    your app or not.
+        //
+        // These three cases are handled in the callback function.
+
+        FB.getLoginStatus(function(response) {
+            console.log("initial get login status");
+            //statusChangeCallback(response);
+        });
+
+    };
+
+    (function(d, s, id){
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {return;}
+        js = d.createElement(s); js.id = id;
+        js.src = "//connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+
+    function eventAPI(event) {
+        console.log('Welcome!  Fetching your information.... ');
+        FB.api('/me', function(response) {
+            console.log(response);
+            console.log('Successful login for: ' + response.name);
+
+            params = { start_time: event.date.slice(0,10),
+                location: event.location.location_name,
+                description: event.description,
+                name: event.title }
+            //FB.api('/'+ response.id + '/events','post',params,function(response) {
+            //	console.log(response);
+            //	});
+            $.mobile.changePage('/events');
+        });
+    }
+    function statusChangeCallback(response,event) {
+        console.log('statusChangeCallback');
+        console.log(response);
+        // The response object is returned with a status field that lets the
+        // app know the current login status of the person.
+        // Full docs on the response object can be found in the documentation
+        // for FB.getLoginStatus().
+        if (response.status === 'connected') {
+            // Logged into your app and Facebook.
+            eventAPI(event);
+        } else if (response.status === 'not_authorized') {
+            // The person is logged into Facebook, but not your app.
+            //$.mobile.changePage('/events');
+        } else {
+            // The person is not logged into Facebook, so we're not sure if
+            // they are logged into this app or not.
+            //$.mobile.changePage('/events');
+        }
+    }
+    // This function is called when someone finishes with the Login
+    // Button.  See the onlogin handler attached to it in the sample
+    // code below.
+    $("#save_fb_event").on("click", function (e) {
+        FB.login(function (response) {
+            if (response.authResponse) {
+                console.log('Welcome!  Fetching your information.... ');
+                FB.api('/me', function (response) {
+                    console.log('Good to see you, ' + response.name + '.');
+                    FB.getLoginStatus(function (response) {
+                        statusChangeCallback(response,event);
+                    });
+                });
+            } else {
+                console.log('User cancelled login or did not fully authorize.');
+            }
+        });
+    });
+    });
+</script>
